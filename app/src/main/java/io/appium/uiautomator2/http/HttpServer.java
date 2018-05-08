@@ -2,7 +2,11 @@ package io.appium.uiautomator2.http;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import io.appium.uiautomator2.utils.MyUiWatchers;
+import io.appium.uiautomator2.utils.TheWatchers;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
@@ -23,7 +27,20 @@ public class HttpServer {
         handlers.add(handler);
     }
 
+    private final TheWatchers watchers = TheWatchers.getInstance();
+    private final Timer timer    = new Timer("WatchTimer");
     public void start() {
+        new MyUiWatchers().registerAutoInstallWathers();
+        final TimerTask updateWatchers = new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    watchers.check();
+                } catch (final Exception e) {
+                }
+            }
+        };
+        timer.scheduleAtFixedRate(updateWatchers, 0, 100);
         if (serverThread != null) {
             throw new IllegalStateException("Server is already running");
         }
